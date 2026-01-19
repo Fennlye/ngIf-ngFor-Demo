@@ -17,25 +17,38 @@
       class="input-text">
     </textarea>
 
-    <button 
-      (click)="addNote()" 
-      class="btn-add"
-      [disabled]="!noteTitle.trim() && !noteText.trim()">
-      Add
-    </button>
+    <div class="button-group">
+      <button 
+        (click)="addNote()" 
+        class="btn-add"
+        [disabled]="!noteTitle.trim() && !noteText.trim()">
+        {{ editingNoteId ? 'Update' : 'Add' }}
+      </button>
+      <button 
+        *ngIf="editingNoteId" 
+        (click)="cancelEdit()" 
+        class="btn-cancel">
+        Cancel
+      </button>
+    </div>
   </div>
 
   <div class="notes-grid" *ngIf="notes.length > 0">
     <div class="note-card" *ngFor="let note of notes">
       <div class="note-header">
         <h2 *ngIf="note.title">{{ note.title }}</h2>
-        <button class="btn-delete" (click)="deleteNote(note.id)">×</button>
+        <div class="note-actions">
+          <button class="btn-edit" (click)="editNote(note)" title="Edit">✎</button>
+          <button class="btn-delete" (click)="deleteNote(note.id)" title="Delete">×</button>
+        </div>
       </div>
       <p class="note-text" *ngIf="note.text">{{ note.text }}</p>
     </div>
   </div>
 
-  <div class="empty-state" *ngIf="notes.length === 0">
+  <div class="loading" *ngIf="isLoading">Loading notes...</div>
+
+  <div class="empty-state" *ngIf="!isLoading && notes.length === 0">
     <p>No notes yet. Create your first note above.</p>
   </div>
 </div>

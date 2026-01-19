@@ -15,6 +15,8 @@ export class AppComponent implements OnInit {
   notes: Note[] = [];
   noteTitle = '';
   noteText = '';
+  editingNoteId: string | null = null;
+  isLoading = false;
 
   constructor(private notesService: NotesService) {}
 
@@ -23,23 +25,56 @@ export class AppComponent implements OnInit {
   }
 
   loadNotes(): void {
-    this.notes = this.notesService.getNotes();
+    this.isLoading = true;
+    this.notesService.getNotes().subscribe({
+      next: (notes) => {
+        this.notes = notes;
+        this.isLoading = false;
+      },
+      error: () => {
+        this.isLoading = false;
+      }
+    });
   }
 
   addNote(): void {
     if (this.noteTitle.trim() || this.noteText.trim()) {
-      this.notesService.addNote({
-        title: this.noteTitle.trim(),
-        text: this.noteText.trim()
-      });
-      this.noteTitle = '';
-      this.noteText = '';
-      this.loadNotes();
+      if (this.editingNoteId) {
+        this.notesService.updateNote(this.editingNoteId, {
+          title: this.noteTitle.trim(),
+          text: this.noteText.trim()
+        }).then(() => {
+          this.resetForm();
+        });
+      } else {
+        this.notesService.addNote({
+          title: this.noteTitle.trim(),
+          text: this.noteText.trim()
+        }).then(() => {
+          this.resetForm();
+        });
+      }
     }
+  }
+
+  editNote(note: Note): void {
+    this.noteTitle = note.title;
+    this.noteText = note.text;
+    this.editingNoteId = note.id;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  cancelEdit(): void {
+    this.resetForm();
   }
 
   deleteNote(id: string): void {
     this.notesService.deleteNote(id);
-    this.loadNotes();
+  }
+
+  private resetForm(): void {
+    this.noteTitle = '';
+    this.noteText = '';
+    this.editingNoteId = null;
   }
 }

@@ -57,6 +57,11 @@ h1 {
   color: #888;
 }
 
+.button-group {
+  display: flex;
+  gap: 12px;
+}
+
 .btn-add {
   background: #202124;
   color: #fff;
@@ -76,6 +81,22 @@ h1 {
 .btn-add:disabled {
   background: #ccc;
   cursor: not-allowed;
+}
+
+.btn-cancel {
+  background: #f1f3f4;
+  color: #202124;
+  border: 1px solid #dadce0;
+  padding: 10px 24px;
+  border-radius: 3px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-cancel:hover {
+  background: #e8eaed;
 }
 
 .notes-grid {
@@ -113,11 +134,17 @@ h1 {
   padding-right: 8px;
 }
 
+.note-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-edit,
 .btn-delete {
   background: none;
   border: none;
   color: #666;
-  font-size: 24px;
+  font-size: 20px;
   line-height: 1;
   cursor: pointer;
   padding: 0;
@@ -130,6 +157,15 @@ h1 {
   transition: all 0.2s;
 }
 
+.btn-edit {
+  font-size: 18px;
+}
+
+.btn-delete {
+  font-size: 24px;
+}
+
+.btn-edit:hover,
 .btn-delete:hover {
   background: #f0f0f0;
   color: #202124;
@@ -147,6 +183,13 @@ h1 {
 .empty-state {
   text-align: center;
   padding: 60px 20px;
+  color: #888;
+  font-size: 14px;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px 20px;
   color: #888;
   font-size: 14px;
 }

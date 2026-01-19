@@ -1,35 +1,55 @@
 import { Injectable } from '@angular/core';
+import { initializeApp } from 'firebase/app';
+import { getDatabase, ref, push, set, onValue, remove, update, Database } from 'firebase/database';
+import { environment } from '../../environments/environment';
 import { Note } from '../models/note.model';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NotesService {
-  private readonly STORAGE_KEY = 'notes';
+  private db: Database;
 
-  getNotes(): Note[] {
-    const notesJson = localStorage.getItem(this.STORAGE_KEY);
-    return notesJson ? JSON.parse(notesJson) : [];
+  constructor() {
+    const app = initializeApp(environment.firebase);
+    this.db = getDatabase(app);
   }
 
-  addNote(note: Omit<Note, 'id' | 'createdAt'>): Note {
-    const notes = this.getNotes();
+  getNotes(): Observable<Note[]> {
+    return new Observable(observer => {
+      const notesRef = ref(this.db, 'notes');
+      onValue(notesRef, (snapshot) => {
+        const notes: Note[] = [];
+        snapshot.forEach((childSnapshot) => {
+          notes.push(childSnapshot.val());
+        });
+        notes.sort((a, b) => b.createdAt - a.createdAt);
+        observer.next(notes);
+      }, (error) => {
+        observer.error(error);
+      });
+    });
+  }
+
+  addNote(note: Omit<Note, 'id' | 'createdAt'>): Promise<void> {
+    const notesRef = ref(this.db, 'notes');
+    const newNoteRef = push(notesRef);
     const newNote: Note = {
       ...note,
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      id: newNoteRef.key!,
       createdAt: Date.now()
     };
-    notes.unshift(newNote);
-    this.saveNotes(notes);
-    return newNote;
+    return set(newNoteRef, newNote);
   }
 
-  deleteNote(id: string): void {
-    const notes = this.getNotes().filter(note => note.id !== id);
-    this.saveNotes(notes);
+  updateNote(id: string, note: Partial<Note>): Promise<void> {
+    const noteRef = ref(this.db, `notes/${id}`);
+    return update(noteRef, note);
   }
 
-  private saveNotes(notes: Note[]): void {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(notes));
+  deleteNote(id: string): Promise<void> {
+    const noteRef = ref(this.db, `notes/${id}`);
+    return remove(noteRef);
   }
 }
