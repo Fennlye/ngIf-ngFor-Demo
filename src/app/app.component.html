@@ -1,139 +1,41 @@
 <div class="container">
-  <header class="header">
-    <h1>{{ title }}</h1>
-    <div class="cart-info">
-      <span class="cart-icon">🛒</span>
-      <span *ngIf="cartCount > 0" class="cart-count">{{ cartCount }}</span>
-    </div>
+  <header>
+    <h1>Notes</h1>
   </header>
 
-  <div class="filter-toggle">
-    <button (click)="toggleFilters()" class="btn btn-secondary">
-      {{ showFilters ? 'Hide Filters' : 'Show Filters' }}
+  <div class="add-note-form">
+    <input 
+      type="text" 
+      [(ngModel)]="noteTitle" 
+      placeholder="Title"
+      class="input-title">
+    
+    <textarea 
+      [(ngModel)]="noteText" 
+      placeholder="Take a note..."
+      rows="3"
+      class="input-text">
+    </textarea>
+
+    <button 
+      (click)="addNote()" 
+      class="btn-add"
+      [disabled]="!noteTitle.trim() && !noteText.trim()">
+      Add
     </button>
   </div>
 
-  <div *ngIf="showFilters" class="filters">
-    <h3>Filters</h3>
-    
-    <div class="filter-group">
-      <label>
-        <input type="checkbox" [(ngModel)]="showOnlyInStock">
-        Show Only In-Stock Items
-      </label>
+  <div class="notes-grid" *ngIf="notes.length > 0">
+    <div class="note-card" *ngFor="let note of notes">
+      <div class="note-header">
+        <h2 *ngIf="note.title">{{ note.title }}</h2>
+        <button class="btn-delete" (click)="deleteNote(note.id)">×</button>
+      </div>
+      <p class="note-text" *ngIf="note.text">{{ note.text }}</p>
     </div>
-
-    <div class="filter-group">
-      <label>Category:</label>
-      <select [(ngModel)]="selectedCategory" class="filter-select">
-        <option *ngFor="let category of categories" [value]="category">
-          {{ category }}
-        </option>
-      </select>
-    </div>
-
-    <div class="filter-group">
-      <label>Minimum Rating: {{ minRating }}</label>
-      <input type="range" [(ngModel)]="minRating" min="0" max="5" step="0.5" class="rating-slider">
-    </div>
-
-    <button (click)="clearFilters()" class="btn btn-clear">Clear Filters</button>
   </div>
 
-  <div class="main-content">
-    <div class="products-section">
-      <h2>Products ({{ filteredProducts.length }} items)</h2>
-      
-      <div *ngIf="filteredProducts.length === 0" class="no-products">
-        <p>😔 No products match your filters. Try adjusting them!</p>
-      </div>
-
-      <div class="products-grid">
-        <div *ngFor="let product of filteredProducts; let i = index; let isFirst = first; let isLast = last; let isEven = even" 
-             class="product-card"
-             [class.even]="isEven"
-             [class.first]="isFirst"
-             [class.last]="isLast">
-          
-          <div class="product-image">
-            <img [src]="product.imageUrl" [alt]="product.name">
-            <span *ngIf="isFirst" class="badge badge-featured">Featured</span>
-            <span *ngIf="!product.inStock" class="badge badge-out">Out of Stock</span>
-          </div>
-
-          <div class="product-info">
-            <h3>{{ product.name }}</h3>
-            <p class="category">{{ product.category }}</p>
-            
-            <div class="rating">
-              <span *ngIf="product.rating >= 4.5" class="stars gold">⭐⭐⭐⭐⭐</span>
-              <span *ngIf="product.rating >= 3.5 && product.rating < 4.5" class="stars">⭐⭐⭐⭐</span>
-              <span *ngIf="product.rating < 3.5" class="stars">⭐⭐⭐</span>
-              <span class="rating-value">{{ product.rating }}</span>
-            </div>
-
-            <p class="price">${{ product.price }}</p>
-
-            <div class="actions">
-              <button *ngIf="product.inStock; else outOfStockBtn" 
-                      (click)="addToCart(product)" 
-                      class="btn btn-primary">
-                Add to Cart
-              </button>
-              <ng-template #outOfStockBtn>
-                <button class="btn btn-disabled" disabled>
-                  Out of Stock
-                </button>
-              </ng-template>
-
-              <button (click)="selectProduct(product)" class="btn btn-info">
-                Details
-              </button>
-            </div>
-
-            <small *ngIf="isFirst || isLast" class="position-info">
-              Item #{{ i + 1 }} - {{ isFirst ? 'First' : 'Last' }} in list
-            </small>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div *ngIf="selectedProduct" class="modal-overlay" (click)="closeDetails()">
-      <div class="modal-content" (click)="$event.stopPropagation()">
-        <button class="close-btn" (click)="closeDetails()">×</button>
-        
-        <h2>{{ selectedProduct.name }}</h2>
-        
-        <div class="modal-body">
-          <img [src]="selectedProduct.imageUrl" [alt]="selectedProduct.name" class="modal-image">
-          
-          <div class="modal-details">
-            <p class="modal-price">${{ selectedProduct.price }}</p>
-            <p class="modal-category">Category: {{ selectedProduct.category }}</p>
-            
-            <div class="modal-rating">
-              <span>Rating: {{ selectedProduct.rating }}</span>
-              <span *ngIf="selectedProduct.rating >= 4.5" class="quality-badge excellent">Excellent!</span>
-              <span *ngIf="selectedProduct.rating >= 4.0 && selectedProduct.rating < 4.5" class="quality-badge good">Good</span>
-              <span *ngIf="selectedProduct.rating < 4.0" class="quality-badge average">Average</span>
-            </div>
-
-            <p class="description">{{ selectedProduct.description }}</p>
-
-            <div class="stock-status">
-              <span *ngIf="selectedProduct.inStock" class="in-stock">✅ In Stock - Ready to Ship!</span>
-              <span *ngIf="!selectedProduct.inStock" class="out-of-stock">❌ Currently Out of Stock</span>
-            </div>
-
-            <button *ngIf="selectedProduct.inStock" 
-                    (click)="addToCart(selectedProduct)" 
-                    class="btn btn-primary btn-large">
-              Add to Cart - ${{ selectedProduct.price }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+  <div class="empty-state" *ngIf="notes.length === 0">
+    <p>No notes yet. Create your first note above.</p>
   </div>
 </div>
